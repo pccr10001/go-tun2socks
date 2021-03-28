@@ -128,6 +128,27 @@ func (conn *udpConn) ReceiveTo(data []byte, addr *net.UDPAddr) error {
 	return nil
 }
 
+func WriteTo(data []byte, addr *net.UDPAddr, src *net.UDPAddr) (int, error) {
+	if len(data) == 0 || udpPCB == nil {
+		return 0, nil
+	}
+	// FIXME any memory leaks?
+	cremoteIP := C.struct_ip_addr{}
+	if err := ipAddrATON(addr.IP.String(), &cremoteIP); err != nil {
+		return 0, err
+	}
+	clocalIP := C.struct_ip_addr{}
+	if err := ipAddrATON(src.IP.String(), &clocalIP); err != nil {
+		return 0, err
+	}
+
+	buf := C.pbuf_alloc_reference(unsafe.Pointer(&data[0]), C.u16_t(len(data)), C.PBUF_ROM)
+	defer C.pbuf_free(buf)
+
+	C.udp_sendto(udpPCB, buf, &clocalIP, C.u16_t(src.Port), &cremoteIP, C.u16_t(addr.Port))
+	return len(data), nil
+}
+
 func (conn *udpConn) WriteFrom(data []byte, addr *net.UDPAddr) (int, error) {
 	if len(data) == 0 {
 		return 0, nil

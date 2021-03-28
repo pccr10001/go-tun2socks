@@ -19,8 +19,16 @@ type UDPConnHandler interface {
 	ReceiveTo(conn UDPConn, data []byte, addr *net.UDPAddr) error
 }
 
+// Interface implemented by TUNHandler.
+type UDPHandler interface {
+	HandleUdp(dstAddr net.IP, dstPort uint16,
+			localAddr net.IP, localPort uint16,
+			data []byte)
+}
+
 var tcpConnHandler TCPConnHandler
 var udpConnHandler UDPConnHandler
+var rawUdpConnHandler UDPHandler
 
 func RegisterTCPConnHandler(h TCPConnHandler) {
 	tcpConnHandler = h
@@ -28,4 +36,8 @@ func RegisterTCPConnHandler(h TCPConnHandler) {
 
 func RegisterUDPConnHandler(h UDPConnHandler) {
 	udpConnHandler = h
+}
+
+func RegisterRawUDPHandler(h UDPHandler) {
+	rawUdpConnHandler = h
 }
