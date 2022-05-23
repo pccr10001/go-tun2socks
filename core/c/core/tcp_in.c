@@ -107,6 +107,9 @@ static void tcp_remove_sacks_gt(struct tcp_pcb *pcb, u32_t seq);
 
 void tcp_syn_create_default (struct tcp_pcb *npcb){
 
+    /* Register the new PCB so that we can begin receiving segments
+           for it. */
+    TCP_REG_ACTIVE(npcb);
     /* Send a SYN|ACK together with the MSS option. */
     err_t rc = tcp_enqueue_flags(npcb, TCP_SYN | TCP_ACK);
     if (rc != ERR_OK) {
@@ -720,9 +723,7 @@ tcp_listen_input(struct tcp_pcb_listen *pcb)
     /* inherit socket options */
     npcb->so_options = pcb->so_options & SOF_INHERITED;
     npcb->netif_idx = pcb->netif_idx;
-    /* Register the new PCB so that we can begin receiving segments
-       for it. */
-    TCP_REG_ACTIVE(npcb);
+
 
     /* Parse any options in the SYN. */
     tcp_parseopt(npcb);

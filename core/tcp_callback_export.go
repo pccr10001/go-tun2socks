@@ -27,13 +27,16 @@ func tcpSYNCreateFn(npcb *C.struct_tcp_pcb) {
 		panic("must register a TCP connection handler")
 	}
 
-	tcpAddr := ParseTCPAddr(ipAddrNTOA(npcb.local_ip), uint16(npcb.local_port))
-	_, err := net.DialTimeout("tcp", tcpAddr.String(), 5*time.Second)
-	if err != nil {
-		C.tcp_abort(npcb)
-		return
-	}
-	C.tcp_syn_create_default(npcb)
+	go func() {
+		tcpAddr := ParseTCPAddr(ipAddrNTOA(npcb.local_ip), uint16(npcb.local_port))
+		d, err := net.DialTimeout("tcp", tcpAddr.String(), 5*time.Second)
+		if err != nil {
+			C.tcp_abort(npcb)
+			return
+		}
+		_ = d.Close()
+		C.tcp_syn_create_default(npcb)
+	}()
 
 }
 
