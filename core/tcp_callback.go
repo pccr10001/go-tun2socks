@@ -38,6 +38,16 @@ void
 set_tcp_poll_callback(struct tcp_pcb *pcb, u8_t interval) {
 	tcp_poll(pcb, tcpPollFn, interval);
 }
+
+extern err_t tcpSYNCreateFn(struct tcp_pcb *npcb);
+
+void
+set_syn_create_callback(struct tcp_pcb *pcb) {
+
+	((struct tcp_pcb_listen *)pcb)->syn_create = tcpSYNCreateFn;
+}
+
+
 */
 import "C"
 
@@ -59,4 +69,8 @@ func setTCPErrCallback(pcb *C.struct_tcp_pcb) {
 
 func setTCPPollCallback(pcb *C.struct_tcp_pcb, interval C.u8_t) {
 	C.set_tcp_poll_callback(pcb, interval)
+}
+
+func setSYNCreateCallback(pcb *C.struct_tcp_pcb) {
+	C.set_syn_create_callback(pcb)
 }

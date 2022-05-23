@@ -3,11 +3,14 @@ package core
 /*
 #cgo CFLAGS: -I./c/include
 #include "lwip/tcp.h"
+
 */
 import "C"
 import (
 	"errors"
 	"fmt"
+	"net"
+	"time"
 	"unsafe"
 )
 
@@ -16,6 +19,23 @@ import (
 // See also:
 // https://github.com/golang/go/issues/20639
 // https://golang.org/cmd/cgo/#hdr-C_references_to_Go
+
+//export tcpSYNCreateFn
+func tcpSYNCreateFn(npcb *C.struct_tcp_pcb) {
+
+	if tcpConnHandler == nil {
+		panic("must register a TCP connection handler")
+	}
+
+	tcpAddr := ParseTCPAddr(ipAddrNTOA(npcb.local_ip), uint16(npcb.local_port))
+	_, err := net.DialTimeout("tcp", tcpAddr.String(), 5*time.Second)
+	if err != nil {
+		C.tcp_abort(npcb)
+		return
+	}
+	C.tcp_syn_create_default(npcb)
+
+}
 
 //export tcpAcceptFn
 func tcpAcceptFn(arg unsafe.Pointer, newpcb *C.struct_tcp_pcb, err C.err_t) C.err_t {

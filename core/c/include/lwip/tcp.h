@@ -58,6 +58,8 @@ extern "C" {
 struct tcp_pcb;
 struct tcp_pcb_listen;
 
+typedef void (*tcp_syn_create_fn)(struct tcp_pcb *newpcb);
+
 /** Function prototype for tcp accept callback functions. Called when a new
  * connection can be accepted on a listening pcb.
  *
@@ -229,6 +231,7 @@ struct tcp_pcb_listen {
 #if LWIP_CALLBACK_API
   /* Function to call when a listener has been connected. */
   tcp_accept_fn accept;
+  tcp_syn_create_fn syn_create;
 #endif /* LWIP_CALLBACK_API */
 
 #if TCP_LISTEN_BACKLOG
@@ -417,6 +420,9 @@ void             tcp_recv    (struct tcp_pcb *pcb, tcp_recv_fn recv);
 void             tcp_sent    (struct tcp_pcb *pcb, tcp_sent_fn sent);
 void             tcp_err     (struct tcp_pcb *pcb, tcp_err_fn err);
 void             tcp_accept  (struct tcp_pcb *pcb, tcp_accept_fn accept);
+
+void             tcp_syn_create  (struct tcp_pcb *pcb, tcp_syn_create_fn syn_create);
+
 #endif /* LWIP_CALLBACK_API */
 void             tcp_poll    (struct tcp_pcb *pcb, tcp_poll_fn poll, u8_t interval);
 
@@ -479,7 +485,9 @@ err_t            tcp_output  (struct tcp_pcb *pcb);
 
 err_t            tcp_tcp_get_tcp_addrinfo(struct tcp_pcb *pcb, int local, ip_addr_t *addr, u16_t *port);
 
-err_t             tcp_process_refused_data(struct tcp_pcb *pcb);
+err_t            tcp_process_refused_data(struct tcp_pcb *pcb);
+
+void             tcp_syn_create_default (struct tcp_pcb *npcb);
 
 #define tcp_dbg_get_tcp_state(pcb) ((pcb)->state)
 

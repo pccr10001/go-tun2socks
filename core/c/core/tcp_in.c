@@ -105,6 +105,17 @@ static void tcp_remove_sacks_gt(struct tcp_pcb *pcb, u32_t seq);
 #endif /* TCP_OOSEQ_BYTES_LIMIT || TCP_OOSEQ_PBUFS_LIMIT */
 #endif /* LWIP_TCP_SACK_OUT */
 
+void tcp_syn_create_default (struct tcp_pcb *npcb){
+
+    /* Send a SYN|ACK together with the MSS option. */
+    err_t rc = tcp_enqueue_flags(npcb, TCP_SYN | TCP_ACK);
+    if (rc != ERR_OK) {
+      tcp_abandon(npcb, 0);
+      return;
+    }
+    tcp_output(npcb);
+}
+
 /**
  * The initial input processing of TCP. It verifies the TCP header, demultiplexes
  * the segment between the PCBs and passes it on to tcp_process(), which implements
@@ -731,13 +742,9 @@ tcp_listen_input(struct tcp_pcb_listen *pcb)
     }
 #endif
 
-    /* Send a SYN|ACK together with the MSS option. */
-    rc = tcp_enqueue_flags(npcb, TCP_SYN | TCP_ACK);
-    if (rc != ERR_OK) {
-      tcp_abandon(npcb, 0);
-      return;
-    }
-    tcp_output(npcb);
+    // go-tun2socks logic
+    pcb->syn_create(npcb);
+
   }
   return;
 }

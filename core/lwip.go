@@ -61,6 +61,8 @@ func NewLWIPStack() LWIPStack {
 		panic("can not allocate tcp pcb")
 	}
 
+	setSYNCreateCallback(tcpPCB)
+
 	setTCPAcceptCallback(tcpPCB)
 
 	udpPCB := C.udp_new()
